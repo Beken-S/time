@@ -1,0 +1,11 @@
+// Добавляет шрифт
+@mixin font(
+  $weight: $site-font-weight,
+  $size: $site-font-size,
+  $line-height: $site-line-height,
+  $family: $site-font-family,
+  $color: $site-font-color
+) {
+  font: #{$weight} #{$size}/#{$line-height} #{$family};
+  color: $color;
+}
