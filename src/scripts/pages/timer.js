@@ -122,8 +122,6 @@ const deleteTimer = () => {
 
 const resetTimer = () => {
   stopTimer();
-  timerButtonStart.classList.remove("hide");
-  timerButtonStop.classList.add("hide");
   timer.current = timer.start;
   timerResult.textContent = formatTime(timer.current);
 };
