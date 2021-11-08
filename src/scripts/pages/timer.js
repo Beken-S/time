@@ -1,7 +1,6 @@
-"use strict";
-
 import { Howl } from "../utils/howler.js";
-import { filterNotNumber, formatTime } from "../utils/getFormatting.js";
+import { filterNotNumber } from "../utils/getFormatting.js";
+import { getLayoutTime } from "../utils/getLayout.js";
 
 const timerForm = document.querySelector(".timer");
 const timerInputField = timerForm.querySelector(".timer__input-field");
@@ -92,7 +91,7 @@ const startTimer = () => {
   timer.id = setInterval(() => {
     timer.current = timer.end - Date.now();
     if (timer.current <= 0) endTimer();
-    timerResult.textContent = formatTime(timer.current);
+    timerResult.innerHTML = getLayoutTime(timer.current);
   }, 50);
 };
 
@@ -123,7 +122,7 @@ const deleteTimer = () => {
 const resetTimer = () => {
   stopTimer();
   timer.current = timer.start;
-  timerResult.textContent = formatTime(timer.current);
+  timerResult.innerHTML = getLayoutTime(timer.current);
 };
 
 const timer = {

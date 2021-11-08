@@ -1,5 +1,3 @@
-"use strict";
-
 import { getDateDiff } from "../utils/getDateDiff.js";
 import { getLayoutError, getLayoutDateDiff } from "../utils/getLayout.js";
 

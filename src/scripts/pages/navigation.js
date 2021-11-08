@@ -1,5 +1,3 @@
-"use strict";
-
 const navButtons = document.querySelectorAll(".nav__button");
 const navPages = document.querySelectorAll(".nav__page");
 const regex = /\d+$/g;
