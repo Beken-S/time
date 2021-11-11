@@ -1,6 +1,7 @@
-import { Howl } from "../utils/howler.js";
+import { DateTime, Duration } from "luxon";
+import { getDateDiff } from "../utils/getDateDiff.js";
 import { filterNotNumber } from "../utils/getFormatting.js";
-import { getLayoutTime } from "../utils/getLayout.js";
+import endSound from "../../sounds/timer-clock-beep.mp3";
 
 const timerForm = document.querySelector(".timer");
 const timerInputField = timerForm.querySelector(".timer__input-field");
@@ -27,6 +28,10 @@ const interfaceControl = (event) => {
       break;
     case "stop":
       timerButtonStart.classList.remove("hide");
+      timerButtonStop.classList.add("hide");
+      break;
+    case "end":
+      timerButtonStart.classList.add("hide");
       timerButtonStop.classList.add("hide");
       break;
     case "delete":
@@ -67,88 +72,102 @@ const handleInputTime = (event, units) => {
   }
 };
 
-const getTimerData = () => {
+const setTimer = () => {
   const {
     hoursInput: { value: hours },
     minutesInput: { value: minutes },
     secondsInput: { value: seconds },
   } = timerForm.elements;
-  return +hours * 3600000 + +minutes * 60000 + +seconds * 1000;
-};
-
-const startTimer = () => {
-  stopTimer();
-  if (timer.start === 0) {
-    return;
-  }
-  interfaceControl("start");
-  if (timer.current === 0) {
-    timer.start = getTimerData();
-    timer.end = Date.now() + timer.start;
-  } else {
-    timer.end = Date.now() + timer.current;
-  }
-  timer.id = setInterval(() => {
-    timer.current = timer.end - Date.now();
-    if (timer.current <= 0) endTimer();
-    timerResult.innerHTML = getLayoutTime(timer.current);
-  }, 50);
-};
-
-const endTimer = () => {
-  stopTimer();
-  timerEndSound.play();
-  timer.current = 0;
-};
-
-const stopTimer = () => {
-  clearInterval(timer.id);
-  interfaceControl("stop");
-};
-
-const deleteTimer = () => {
-  stopTimer();
-  initFields();
-  interfaceControl("delete");
-  for (let prop in timer) {
-    if (prop === "id") {
-      timer[prop] = null;
-    } else {
-      timer[prop] = 0;
-    }
-  }
+  timer.duration = {
+    hours: +hours,
+    minutes: +minutes,
+    seconds: +seconds,
+  };
+  timer.start = DateTime.local();
+  timer.current = timer.start;
+  timer.end = timer.start.plus(timer.duration);
+  timer.wasAlreadyRunning = true;
 };
 
 const resetTimer = () => {
   stopTimer();
   timer.current = timer.start;
-  timerResult.innerHTML = getLayoutTime(timer.current);
+  timer.wasAlreadyRunning = false;
+  renderTimer();
+};
+
+const renderTimer = () => {
+  const remaining = getDateDiff(timer.current, timer.end);
+  timerResult.textContent = Duration.fromObject(remaining).toFormat("hh:mm:ss");
+};
+
+const startTimer = () => {
+  if (timer.id !== null) stopTimer();
+  interfaceControl("start");
+  if (timer.wasAlreadyRunning) {
+    resumeTimer();
+  } else {
+    setTimer();
+  }
+  timer.id = setInterval(() => {
+    timer.current = DateTime.local();
+    if (timer.current >= timer.end) {
+      endTimer();
+    }
+    renderTimer();
+  }, 50);
+};
+
+const resumeTimer = () => {
+  const remainder = getDateDiff(timer.current, timer.end);
+  timer.end = DateTime.local().plus(remainder);
+  timer.start = timer.end.minus(timer.duration);
+};
+
+const stopTimer = () => {
+  clearInterval(timer.id);
+  timer.id = null;
+  interfaceControl("stop");
+};
+
+const endTimer = () => {
+  const timerEndSound = new Audio(endSound);
+  stopTimer();
+  timer.current = timer.end;
+  timer.wasAlreadyRunning = false;
+  timerEndSound.play();
+  interfaceControl("end");
+};
+
+const deleteTimer = () => {
+  stopTimer();
+  timer.start = null;
+  timer.current = null;
+  timer.end = null;
+  timer.wasAlreadyRunning = false;
+  initFields();
+  interfaceControl("delete");
 };
 
 const timer = {
   id: null,
-  start: 0,
-  end: 0,
-  current: 0,
+  duration: null,
+  start: null,
+  end: null,
+  current: null,
+  wasAlreadyRunning: false,
 };
-
-const timerEndSound = new Howl({
-  src: ["../../sounds/timer-clock-beep.mp3"],
-});
 
 initFields();
 
 hoursInput.addEventListener("input", (event) => {
   handleInputTime(event, "hours");
-  timer.start = getTimerData();
 });
 minutesInput.addEventListener("input", (event) => {
   handleInputTime(event, "minutes");
-  timer.start = getTimerData();
 });
 secondsInput.addEventListener("input", (event) => {
   handleInputTime(event, "seconds");
-  timer.start = getTimerData();
 });
 timerButtonStart.addEventListener("click", startTimer);
 timerButtonStop.addEventListener("click", stopTimer);

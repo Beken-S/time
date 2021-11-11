@@ -73,21 +73,3 @@ export const getLayoutDateDiff = (diff) => {
  * @returns строка с HTML разметкой.
  */
 export const getLayoutError = (text) => `<span class="error">${text}</span>`;
-
-/**
- * Создает разметку для времени.
- * @param {Number} mSeconds миллисекунды.
- * @returns строка с HTML разметкой.
- */
-export const getLayoutTime = (mSeconds) => {
-  const seconds = Math.trunc((mSeconds / 1000) % 60);
-  const minutes = Math.trunc((mSeconds / 60000) % 60);
-  const hours = Math.trunc(mSeconds / 3600000);
-  return `
-    <span>
-      ${hours < 10 ? "0" + hours : hours} :
-      ${minutes < 10 ? "0" + minutes : minutes} :
-      ${seconds < 10 ? "0" + seconds : seconds}
-    </span>
-  `;
-};
